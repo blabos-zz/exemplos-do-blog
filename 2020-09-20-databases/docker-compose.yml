@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  pgdb:
+    image: postgres
+    hostname: pgdb
+    networks:
+      - blog-post
+    ports:
+      - "4001:${PG_PORT}"
+    environment:
+      - POSTGRES_PASSWORD
+      - PG_USER
+      - PG_DB
+    volumes:
+      - "pgdata:/var/lib/postgresql/data"
+      - "./pgdb/startup:/docker-entrypoint-initdb.d"
+      - "./pgdb/sql:/sql"
+  pg-cli:
+    image: postgres
+    depends_on:
+      - pgdb
+    hostname: pg-cli
+    networks:
+      - blog-post
+    volumes:
+      - "./pgdb/sql:/sql"
+    stdin_open: true
+    tty: true
+    command: psql -h $PG_HOST -p $PG_PORT -d $PG_DB -U $PG_USER -W
+
+  mydb:
+    image: mysql
+    hostname: mydb
+    networks:
+      - blog-post
+    ports:
+      - "4002:${MYSQL_PORT}"
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - MYSQL_DATABASE
+    volumes:
+      - "mydata:/var/lib/mysql"
+      - "./mydb/startup:/docker-entrypoint-initdb.d"
+      - "./mydb/sql:/sql"
+  my-cli:
+    image: mysql
+    depends_on:
+      - mydb
+    hostname: my-cli
+    networks:
+      - blog-post
+    volumes:
+     - "./mydb/sql:/sql"
+    stdin_open: true
+    tty: true
+    command: mysql --host ${MYSQL_HOST} --port ${MYSQL_PORT} --database ${MYSQL_DATABASE} --user ${MYSQL_USER} -p
+
+networks:
+  blog-post:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.42.0/24
+
+volumes:
+  pgdata:
+  mydata:
