@@ -4,6 +4,7 @@ create schema "pgdb_schema" authorization blabos;
 
 create table "pgdb_schema"."clients" (
     "id"                bigserial primary key,
+    "user"              varchar(31) not null unique,
     "name"              varchar(255) not null,
     "email"             varchar(255) not null unique
 );

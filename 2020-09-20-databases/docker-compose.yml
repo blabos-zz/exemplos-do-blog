@@ -27,7 +27,7 @@ services:
       - "./pgdb/sql:/sql"
     stdin_open: true
     tty: true
-    command: psql -h $PG_HOST -p $PG_PORT -d $PG_DB -U $PG_USER -W
+    command: psql -h ${PG_HOST} -p ${PG_PORT} -d ${PG_DB} -U ${PG_USER} -W
 
   mydb:
     image: mysql
