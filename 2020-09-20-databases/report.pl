@@ -44,7 +44,8 @@ foreach my $student ( $clients->@* ) {
     my @courses = grep { $_->{student} eq $user } $history->@*;
 
     say '=' x 80;
-    say "Parabéns $name!$/$/Você foi aprovado no(s) curso(s):";
+    say "Parabéns $name!";
+    say "Você foi aprovado(a) no(s) curso(s):";
     say '  * ' . $_->{course} foreach @courses;
 }
 say '=' x 80;
