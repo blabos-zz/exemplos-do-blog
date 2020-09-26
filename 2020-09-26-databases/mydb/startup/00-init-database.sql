@@ -1,3 +1,5 @@
+--
+-- Creating tables
 create table course_history (
     id                    bigint primary key auto_increment,
     course                varchar(31) not null unique,
@@ -5,6 +7,8 @@ create table course_history (
     grade                 decimal(3,1) not null default 0.0
 );
 
+--
+-- Inserting data
 insert into course_history
     (course, student, grade)
 values
