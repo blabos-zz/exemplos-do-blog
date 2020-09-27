@@ -5,8 +5,9 @@ use strict;
 use warnings;
 
 use DBI;
+use Text::CSV_XS qw( csv );
 
-## postgres connection
+## conexão ao postgres
 my $pg_host = 'localhost';
 my $pg_port = '4001';
 my $pg_db   = 'pgdb_sample';
@@ -15,7 +16,7 @@ my $pg_user = 'blabos';
 my $pg_pass = 'blabos';
 my $pg_dbh  = DBI->connect( $pg_dsn, $pg_user, $pg_pass );
 
-## mysql connection
+## conexão ao mariadb
 my $my_host = '127.0.0.1';
 my $my_port = '4002';
 my $my_db   = 'mydb_sample';
@@ -24,29 +25,43 @@ my $my_user = 'blabos';
 my $my_pass = 'blabos';
 my $my_dbh  = DBI->connect( $my_dsn, $my_user, $my_pass );
 
-## getting students from postgres database
+## pegando a lista de estudantes no postgres
 my $clients = $pg_dbh->selectall_arrayref(
     'select * from "pgdb_schema"."clients" order by name',
     { Slice => {} },
 );
 
-## getting history from mysql database
+## pegando o histórico no mariadb
 my $history = $my_dbh->selectall_arrayref(
     'select * from course_history where grade > 5.0',
     { Slice => {} },
 );
 
-## let's report!
+## gerando o relatório!
+my @rows = ();
 foreach my $student ( $clients->@* ) {
-    my $user    = $student->{user};
-    my $name    = $student->{name};
-    my $email   = $student->{email};
-    my @courses = grep { $_->{student} eq $user } $history->@*;
+    my @courses =
+      map  { $_->{course} }                         ## 3. pega o nome do curso
+      grep { $_->{student} eq $student->{user} }    ## 2. filtra deste aluno
+      $history->@*;                                 ## 1. pega todos os cursos
 
+    ## estrutura de dados para o csv
+    push @rows,
+      {
+        name    => $student->{name},
+        email   => $student->{email},
+        courses => join( ', ', @courses ),
+      };
+
+    ## apenas mostrando na tela
     say '=' x 80;
-    say "Parabéns $name!";
-    say "Você foi aprovado(a) no(s) curso(s):";
-    say '  * ' . $_->{course} foreach @courses;
+    say "Parabéns $student->{name} por sua aprovação em:";
+    say '  * ' . $_ foreach @courses;
 }
+
+## uma última linha na tela
 say '=' x 80;
+
+## gerando o arquivo csv
+csv( in => \@rows, out => 'report.csv' );
 
